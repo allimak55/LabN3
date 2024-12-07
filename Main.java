@@ -22,11 +22,13 @@ public class Main {
             System.out.println("13. Выход");
             int choice = in.nextInt();
             if (choice == 1) {
-                System.out.println("Введите название блюда: ");
+                System.out.print("Введите название блюда: ");
                 String name = in.nextLine();
-                System.out.println("Введите цену блюда: ");
+                in.nextLine();
+                System.out.print("Введите цену блюда: ");
                 double price = in.nextDouble();
-                System.out.println("Введите количество порций: ");
+                in.nextLine();
+                System.out.print("Введите количество порций: ");
                 int count = in.nextInt();
                 Menu.addDish(name, price, count);
             }
@@ -86,11 +88,13 @@ public class Main {
             else if (choice == 11) {
                 System.out.println("Введите название блюда: ");
                 String name = in.nextLine();
+                in.nextLine();
                 Menu.removeDish(name);
             }
             else if (choice == 12) {
                 System.out.println("Введите название блюда: ");
                 String name = in.nextLine();
+                in.nextLine();
                 Menu.removeDishIfOutStock(name);
             }
             else if (choice == 13) {
@@ -98,7 +102,7 @@ public class Main {
                 exit = true;
             }
             else
-                System.out.println("Неверный выбор!");
+                System.out.println("Неверный выбор! Может попробуете ещё раз?");
         }
     }
 }
@@ -132,8 +136,7 @@ class Dish
         return count;
     }
     public void setCount(int count) {
-        if (count > 0)
-            this.count = count;
+        this.count = count;
     }
     @Override
     public String toString() {
@@ -142,32 +145,30 @@ class Dish
 }
 class Menu
 {
-    public static Dish[] menu;
-    public static int dishCount;
-    public Menu() {
-        this.menu = new Dish[5];
-        this.dishCount = 0;
-    }
+    public static Dish[] menu = new Dish[5];
+    public static int dishCount = 0;
+
     //Добавление блюда(1)
     public static void addDish(String dish, double price, int count) {
-        /*Проверка количества добавляемых блюд
+        /* Проверка количества добавляемых блюд
         if (count <= 0) {
             System.out.println("Простите, но количество должно быть больше 0 :(");
             return;
         } */
+        //Проверка, существует ли блюдо с таким названием
+        if (dishCount > 0)
+            for (int i = 0; i < 5; i++)
+                if (menu[i].getDish().equals(dish)) { //Проверяем "объекты" на равенство, то есть названия блюда, которое уже добавлено в меню, и нового блюда
+                    System.out.println("Простите, но блюда с таким названием уже существует");
+                    return;
+                }
         //Проверка цены блюда
         if (price <= 0) {
             System.out.println("Простите, цена не может быть меньше или равна 0 :(");
             return;
         }
-        //Проверка, существует ли блюдо с таким названием
-        for (int i = 0; i < menu.length; i++)
-            if (menu[i].getDish().equals(dish)) { //Проверяем "объекты" на равенство, то есть названия блюда, которое уже добавлено в меню, и нового блюда
-                System.out.println("Простите, но блюда с таким названием уже существует");
-                return;
-            }
         //Проверка, возможно ли добавить новое блюдо в меню(есть ли место)
-        if (dishCount == menu.length) {
+        if (dishCount >= menu.length) {
             System.out.println("Простите, но меню уже заполнено");
             return;
         }
@@ -201,7 +202,7 @@ class Menu
         sortMenu();
         //Печать меню с доступными блюдами
         System.out.println("Меню доступных блюд:");
-        for (int i = 0; i < dishCount; i++)
+        for (int i = 0; i < dishCount - 1; i++)
             if (menu[i].getCount() > 0)
                 System.out.printf("%s - %.2f руб.%n", menu[i].getDish(), menu[i].getPrice());
 
