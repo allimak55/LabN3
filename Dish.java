@@ -8,7 +8,7 @@ public class Dish {
     public Dish(String dish, double price, int count) {
         this.dish = dish; //блюдо
         this.price = price; //цена
-        this.count = 0; //начальное значение количества кого-то блюда = 0;
+        this.count = count; //количество порций
     }
 
     //Геттеры и сеттеры для этих переменных

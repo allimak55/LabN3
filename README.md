@@ -82,556 +82,723 @@
 14. **Метод removeDishIfOutStock - удаление блюда, если его нет в наличии**
 >
 
-### 3. Программа
+### 3.1. Программа работы с пользователем
 
 ```java
+import java.io.PrintStream;
 import java.util.Scanner;
-public class Main {
+
+public class MenuManager {
    public static Scanner in = new Scanner(System.in);
-   public static void main(String[] args){
+   public static PrintStream out = System.out;
+
+   public static void main(String[] args) {
       boolean exit = false;
-      while(!exit) {
-         System.out.println("Меню:");
-         System.out.println("1. Добавить блюдо");
-         System.out.println("2. Распечатать меню");
-         System.out.println("3. Распечатать доступные блюда");
-         System.out.println("4. Добавить приготовленное блюдо");
-         System.out.println("5. Изменить цену блюда");
-         System.out.println("6. Купить одно блюдо");
-         System.out.println("7. Купить несколько блюд");
-         System.out.println("8. Максимальное количество блюд за сумму");
-         System.out.println("9. Три самых дорогих блюда");
-         System.out.println("10. Три самых дешёвых блюда");
-         System.out.println("11. Удалить блюдо полностью");
-         System.out.println("12. Удалить блюдо, потому что оно нет в наличии");
-         System.out.println("13. Выход");
+      Menu menu = new Menu();
+
+      while (!exit) {
+         printMenu();
          int choice = in.nextInt();
-         switch (choice) {
-            case 1:
-               System.out.print("Введите название блюда: ");
-               String name = in.nextLine();
-               in.nextLine();
-               System.out.print("Введите цену блюда: ");
-               double price = in.nextDouble();
-               in.nextLine();
-               System.out.print("Введите количество порций: ");
-               int count = in.nextInt();
-               Menu.addDish(name, price, count);
-               break;
-            case 2:
-               Menu.printMenu();
-               break;
-            case 3:
-               Menu.printAvailableMenu();
-               break;
-            case 4:
-               System.out.println("Введите номер блюда в меню: ");
-               int num1 = in.nextInt();
-               System.out.println("Введите количество порций: ");
-               int cnt1 = in.nextInt();
-               Menu.prepareCount(num1, cnt1);
-               break;
-            case 5:
-               System.out.println("Введите номер блюда в меню: ");
-               int num2 = in.nextInt();
-               System.out.println("Введите новую цену: ");
-               double price1 = in.nextDouble();
-               Menu.changePrice(num2, price1);
-               break;
-            case 6:
-               System.out.println("Введите номер блюда в меню: ");
-               int num3 = in.nextInt();
-               double res1 = Menu.buyDish(num3);
-               if (res1 != -1)
-                  System.out.println("Цена: " + res1);
-               break;
-            case 7:
-               System.out.println("Сколько блюд вы хотите купить?");
-               int cnt = in.nextInt();
-               System.out.println("Введите номера блюд в меню: ");
-               int [] num = new int[cnt];
-               for (int i = 0; i < cnt; i++)
-                  num[i] = in.nextInt();
-               double res2 = Menu.buyMultDishes(num);
-               if (res2 != -1)
-                  System.out.println("Общая стоимость: " + res2);
-               break;
-            case 8:
-               System.out.println("В пределах какой суммы вы хотите совершить покупку?");
-               double sum = in.nextDouble();
-               System.out.println("Максимальное количество блюд, которые вы можете купить: " + Menu.maxDishes(sum));
-               break;
-            case 9:
-               System.out.println("Самые дорогие блюда:");
-               Menu.getThreeMostExpDishes();
-               break;
-            case 10:
-               System.out.println("Самые дешёвые блюда:");
-               Menu.getThreeCheapestDishes();
-               break;
-            case 11:
-               System.out.println("Введите название блюда: ");
-               String name1 = in.nextLine();
-               in.nextLine();
-               Menu.removeDish(name1);
-               break;
-            case 12:
-               System.out.println("Введите название блюда: ");
-               String name2 = in.nextLine();
-               in.nextLine();
-               Menu.removeDishIfOutStock(name2);
-               break;
-            case 13:
-               System.out.println("Выход...");
-               exit = true;
-               break;
-            default:
-               System.out.println("Некорректный выбор.");
-               break;
-         }
+         exit = handleChoice(choice, menu);
       }
    }
-}
-class Dish
-{
-   private String dish;
-   private double price;
-   private int count;
-   //Создание необходимых переменных названия блюд,
-   //их стоимость и количество порций.
-   public Dish(String dish, double price, int count) {
-      this.dish = dish; //блюдо
-      this.price = price; //цена
-      this.count = 0; //начальное значение количества кого-то блюда = 0;
-   }
-   //Геттеры и сеттеры для этих переменных
-   public String getDish() {
-      return dish;
-   }
-   public void setDish(String dish){
-      this.dish = dish;
-   }
-   public double getPrice() {
-      return price;
-   }
-   public void setPrice(double price) {
-      if (price > 0) //проверка цены, потому что если она меньше нуля, то мы игнорируем
-         this.price = price;
-   }
-   public int getCount() {
-      return count;
-   }
-   public void setCount(int count) {
-      this.count = count;
-   }
-   @Override
-   public String toString() {
-      return String.format("%s - %.2f руб. (%d порций)", dish, price, count);
-   }
-}
-class Menu
-{
-   public static Dish[] menu = new Dish[5];
-   public static int dishCount = 0;
 
-   //Добавление блюда(1)
-   public static void addDish(String dish, double price, int count) {
-      //Проверка, существует ли блюдо с таким названием
-      if (dishCount > 0)
-         for (int i = 0; i < 5; i++)
-            if (menu[i].getDish().equals(dish)) { //Проверяем "объекты" на равенство, то есть названия блюда, которое уже добавлено в меню, и нового блюда
-               System.out.println("Простите, но блюда с таким названием уже существует");
-               return;
-            }
-      //Проверка цены блюда
-      if (price <= 0) {
-         System.out.println("Простите, цена не может быть меньше или равна 0 :(");
-         return;
-      }
-      //Проверка, возможно ли добавить новое блюдо в меню(есть ли место)
-      if (dishCount >= menu.length) {
-         System.out.println("Простите, но меню уже заполнено");
-         return;
-      }
-      //Если новое блюдо прошло все проверки, то мы его добавляем
-      menu[dishCount++] = new Dish(dish, price, count);
-      System.out.println("Ваше блюдо добавлено");
-   }
-   //Печать нашего меню(полностью)(2)
    public static void printMenu() {
-      //Проверка, есть ли у нас хотя бы одно добавленное блюдо в меню
-      if (dishCount == 0) {
-         System.out.println("Простите, но в меню еще не добавлены блюда");
-         return;
-      }
-      //Отсортировываем массив(меню), чтобы блюда были расположены в алфавитном порядке
-      sortMenu();
-      //Печать меню
-      System.out.println("Меню:");
-      for (int i = 0; i < dishCount; i++) {
-         System.out.printf(String.format("%s - %.2f руб.\n", menu[i].getDish(), menu[i].getPrice()));
-      }
+      out.println("""
+              Меню:
+              1. Добавить блюдо
+              2. Распечатать меню
+              3. Распечатать доступные блюда
+              4. Добавить приготовленное блюдо
+              5. Изменить цену блюда
+              6. Купить одно блюдо
+              7. Купить несколько блюд
+              8. Максимальное количество блюд за сумму
+              9. Три самых дорогих блюда
+              10. Три самых дешёвых блюда
+              11. Удалить блюдо полностью
+              12. Удалить блюдо, потому что его нет в наличии
+              13. Выход
+              """);
+      out.print("Выберите действие: ");
+   }
 
-   }
-   //Печать нашего меню(доступных блюд)(3)
-   public static void printAvailableMenu() {
-      //Проверка, есть ли у нас хотя бы одно добавленное блюдо в меню
-      if (dishCount == 0) {
-         System.out.println("Простите, но в меню еще не добавлены блюда");
-         return;
+   public static boolean handleChoice(int choice, Menu menu) {
+      switch (choice) {
+         case 1 -> addDish(menu);
+         case 2 -> menu.printMenu();
+         case 3 -> menu.printAvailableMenu();
+         case 4 -> {
+            menu.printAvailableMenu();
+            addPreparedDish(menu);
+         }
+         case 5 -> {
+            menu.printMenu();
+            changeDishPrice(menu);
+         }
+         case 6, 7 -> {
+            menu.printAvailableMenu();
+            buyDish(menu, choice == 6);
+         }
+         case 8 -> {
+            menu.printAvailableMenu();
+            getMaxDishesWithinBudget(menu);
+         }
+         case 9 -> menu.getThreeMostExpDishes();
+         case 10 -> menu.getThreeCheapestDishes();
+         case 11 -> {
+            menu.printMenu();
+            removeDish(menu);
+         }
+         case 12 -> {
+            menu.printMenu();
+            removeDishOutOfStock(menu);
+         }
+         case 13 -> {
+            out.println("Выход...");
+            return true;
+         }
+         default -> out.println("Неверный выбор! Попробуйте ещё раз.");
       }
-      //Отсортировываем массив(меню), чтобы блюда были расположены в алфавитном порядке
-      sortMenu();
-      //Печать меню с доступными блюдами
-      System.out.println("Меню доступных блюд:");
-      for (int i = 0; i < dishCount - 1; i++)
-         if (menu[i].getCount() > 0)
-            System.out.printf("%s - %.2f руб.\n", menu[i].getDish(), menu[i].getPrice());
+      return false;
+   }
 
+   public static void addDish(Menu menu) {
+      out.print("Введите название блюда: ");
+      in.nextLine(); // очистка буфера
+      String name = in.nextLine();
+      out.print("Введите цену блюда: ");
+      double price = in.nextDouble();
+      out.print("Введите количество порций: ");
+      int count = in.nextInt();
+      menu.addDish(name, price, count);
    }
-   //Отдельная подпрограмма для сортировки массива(меню) по названию блюд
-   public static void sortMenu() {
-      //Проверка, есть ли у нас хотя бы одно добавленное блюдо в меню
-      if (dishCount == 0) {
-         System.out.println("Простите, но в меню еще не добавлены блюда");
-         return;
-      }
-      //Сортировка пузырьком
-      for (int i = 1; i < dishCount; i++)
-         for (int j = 0; j < dishCount - i; j++)
-            //Сравниваем названия блюд лексикографически
-            if (menu[j].getDish().compareTo(menu[j + 1].getDish()) > 0) {
-               Dish temp = menu[j];
-               menu[j] = menu[j + 1];
-               menu[j + 1] = temp;
-            }
-   }
-   //Приготовление порций блюда(4)
-   public static void prepareCount(int num, int cnt) {
-      //Требуемые в задании проверки
-      if (num < 1 || num > dishCount) {
-         System.out.println("Простите, но блюда под таким номером нет");
-         return;
-      }
-      if (cnt <= 0) {
-         System.out.println("Простите, но вы не добавили количество порций");
-         return;
-      }
-      //Изменение количества(приготовление)
-      menu[num - 1].setCount(menu[num - 1].getCount() + cnt);
-      //System.out.printf("Количество порций блюда \"%s\" увеличено на %d. Текущее количество: %d%n", menu[dishNumber - 1].getName(), additionalPortions, menu[dishNumber - 1].getPortions());
-   }
-   //Изменение цены блюда(5)
-   public static void changePrice(int num, double price) {
-      //Требуемые в задании проверки
-      if (num < 1 || num > dishCount) {
-         System.out.println("Простите, но блюда под таким номером нет");
-         return;
-      }
-      if (price == menu[num - 1].getPrice() || menu[num - 1].getPrice() - price > 0) {
-         System.out.println("Простите, но цену можно только увеличить");
-         return;
-      }
-      //Изменение цены
-      menu[num - 1].setPrice((price));
-   }
-   //Покупка одного блюда(6)
-   public static double buyDish(int num) {
-      //Необходимые в задании проверки
-      if (num < 1 || num > dishCount) {
-         System.out.println("Простите, такого блюда не существует");
-         return -1;
-      }
-      //Проверяем, чтобы количество порций было доступно для покупки
-      if (menu[num - 1].getCount() <= 0) {
-         System.out.println("Простите, такого блюда нет в наличии");
-         return -1;
-      }
-      //изменяем количество блюд после покупки
-      menu[num - 1].setCount(menu[num - 1].getCount() - 1);
-      //возвращаем цену этого блюда
-      return menu[num - 1].getPrice();
-   }
-   //Покупка нескольких блюд(7)
-   public  static double buyMultDishes(int [] nums) {
-      double sum = 0; //общая сумма
-      boolean res = false; //флаг
 
-      for (int i = 0; i < nums.length; i++) {
-         int n = nums[i]; //берем первый номер из массива номеров
-         if (n < 1 || n > dishCount) {
-            System.out.println("Простите, но такого блюда не существует");
-            return -1;
-         }
-         //запускаем ранее созданный метод для покупки одного блюда
-         double cost = buyDish(n);
-         //Делаем проверку, возможно ли купить такое блюдо
-         if (cost != -1) {
-            //Если блюдо прошло проверку, то добавляем его стоимость и меняем флаг
-            sum += cost;
-            res = true;
-         }
-      }
-      if (res)
-         return sum;
-      else
-         return  -1;
+   public static void addPreparedDish(Menu menu) {
+      out.print("Введите номер блюда в меню: ");
+      int num = in.nextInt();
+      out.print("Введите количество порций: ");
+      int count = in.nextInt();
+      menu.prepareCount(num, count);
    }
-   //Максимальное количество блюд по сумме(8)
-   public  static int maxDishes(double sum) {
-      int count = 0; //счётчик для доступных блюд
-      Dish [] availableDishes = new Dish[dishCount];
-      //Добавляем в локальный массив только доступные блюда
-      for (int i = 0; i < dishCount; i++)
-         if (menu[i].getCount() > 0) {
-            availableDishes[count] = menu[i];
-            count++;
-         }
-      //Сортируем массив по цене, чтобы сначала
-      // получить наиболее количество блюд при покупке
-      //Сортировка пузырьком
-      for (int i = 1; i < count; i++)
-         for (int j = 0; j < count - i; j++)
-            if (availableDishes[j].getPrice() > availableDishes[j + 1].getPrice()) {
-               Dish temp = availableDishes[j];
-               availableDishes[j] = availableDishes[j + 1];
-               availableDishes[j + 1] = temp;
-            }
-      //переменная для подсчёта количества блюд,
-      // которые можно купить на передаваемую сумму
-      int dishes = 0;
-      for (int i = 0; i < count; i++) {
-         Dish dish = availableDishes[i]; //берем первое блюдо
-         int affordableDishes = (int) Math.min(sum / dish.getPrice(), dish.getCount());
-         dishes += affordableDishes;
-         sum -= affordableDishes * dish.getPrice();
-         if (sum <= 0)
-            break;
-      }
-      return dishes;
+
+   public static void changeDishPrice(Menu menu) {
+      out.print("Введите номер блюда в меню: ");
+      int num = in.nextInt();
+      out.print("Введите новую цену: ");
+      double price = in.nextDouble();
+      menu.changePrice(num, price);
    }
-   //Три самых дорогих блюд(9)
-   public static void getThreeMostExpDishes() {
-      Dish first = null; //Переменная для самого дорого блюда
-      Dish second = null; //Переменная для второго по стоимости блюда
-      Dish third = null; //Переменная для третьего по стоимости блюдо
-      for (int i = 0; i < dishCount; i++) {
-         if (menu[i] == null || menu[i].getCount() <= 0) {
-            continue;
+
+   public static void buyDish(Menu menu, boolean single) {
+      if (single) {
+         out.print("Введите номер блюда в меню: ");
+         int num = in.nextInt();
+         double price = menu.buyDish(num);
+         if (price != -1) out.println("Цена: " + price);
+      } else {
+         out.print("Сколько блюд вы хотите купить? ");
+         int count = in.nextInt();
+         int[] dishNumbers = new int[count];
+         out.println("Введите номера блюд:");
+         for (int i = 0; i < count; i++) {
+            dishNumbers[i] = in.nextInt();
          }
-         if (first == null || menu[i].getPrice() > first.getPrice()) {
-            third = second;
-            second = first;
-            first = menu[i];
-         }
-         else if (second == null || menu[i].getPrice() > second.getPrice()) {
-            third = second;
-            second = menu[i];
-         }
-         else if (third == null || menu[i].getPrice() > third.getPrice()){
-            third = menu[i];
-         }
+         double total = menu.buyMultDishes(dishNumbers);
+         if (total != -1) out.println("Общая стоимость: " + total);
       }
-      //Вывод
-      if (first != null)
-         System.out.println("1. " + first.getDish() + " - " + first.getPrice());
-      else
-         System.out.println("Извините, но доступных блюд нет");
-      if (second != null)
-         System.out.println("2. " + second.getDish() + " - " + second.getPrice());
-      if (third != null)
-         System.out.println("3. " + third.getDish() + " - " + third.getPrice());
    }
-   //Три самых дешёвых блюд(10)
-   public static void getThreeCheapestDishes() {
-      Dish first = null; //Переменная для самого дешёвого блюда
-      Dish second = null; //Переменная для второго по стоимости блюда
-      Dish third = null; //Переменная для третьего по стоимости блюдо
-      for (int i = 0; i < dishCount; i++) {
-         if (menu[i] == null || menu[i].getCount() <= 0) {
-            continue;
-         }
-         if (first == null || menu[i].getPrice() < first.getPrice()) {
-            third = second;
-            second = first;
-            first = menu[i];
-         }
-         else if (second == null || menu[i].getPrice() < second.getPrice()) {
-            third = second;
-            second = menu[i];
-         }
-         else if (third == null || menu[i].getPrice() < third.getPrice()){
-            third = menu[i];
-         }
-      }
-      //Вывод
-      if (first != null)
-         System.out.println("1. " + first.getDish() + " - " + first.getPrice());
-      else
-         System.out.println("Извините, но доступных блюд нет");
-      if (second != null)
-         System.out.println("2. " + second.getDish() + " - " + second.getPrice());
-      if (third != null)
-         System.out.println("3. " + third.getDish() + " - " + third.getPrice());
+
+   public static void getMaxDishesWithinBudget(Menu menu) {
+      out.print("В пределах какой суммы вы хотите совершить покупку? ");
+      double budget = in.nextDouble();
+      int maxDishes = menu.maxDishes(budget);
+      out.println("Максимальное количество блюд, которые вы можете купить: " + maxDishes);
    }
-   //Удаление блюда из списка(11)
-   public static void removeDish(String name) {
-      for (int i = 0; i < dishCount; i++) {
-         if (menu[i].getDish().equals(name)) {
-            //Смещаем элементы массива влево, чтобы заполнить пробел
-            for (int j = i; j < dishCount - 1; j++)
-               menu[j] = menu[j + 1];
-            //Уменьшаем количество блюд и очищаем последний элемент
-            menu[--dishCount] = null;
-            System.out.println("Блюдо удалено");
-            return;
-         }
-      }
-      //Если такое блюдо не найдется
-      System.out.println("Такого блюда не найдено");
+
+   public static void removeDish(Menu menu) {
+      out.print("Введите название блюда: ");
+      in.nextLine(); // очистка буфера
+      String name = in.nextLine();
+      menu.removeDish(name);
    }
-   //Удаление блюда, если его нет в наличии(12)
-   public static void removeDishIfOutStock(String name) {
-      for (int i = 0; i < dishCount; i++) {
-         if (menu[i].getDish().equals(name))
-            if (menu[i].getCount() <= 0) {
-               for (int j = i; j < dishCount - 1; j++)
-                  menu[j] = menu[j + 1];
-               menu[--dishCount] = null;
-               System.out.println("Блюдо удалено");
-            }
-         return;
-      }
-      //Если такое блюдо не найдется
-      System.out.println("Такого блюда не найдено или он еще есть в наличии");
+
+   public static void removeDishOutOfStock(Menu menu) {
+      out.print("Введите название блюда: ");
+      in.nextLine(); // очистка буфера
+      String name = in.nextLine();
+      menu.removeDishIfOutStock(name);
    }
 }
+```
+### 3.2. Класс с методами для работы с меню столовой
+```java
+public class Menu {
+public Dish[] menu;
+public int dishCount;
+
+    Menu() {
+        menu = new Dish[5];
+        dishCount = 0;
+    }
+
+    //Добавление блюда(1)
+    public void addDish(String dish, double price, int count) {
+        //Проверка, существует ли блюдо с таким названием
+        if (dishCount > 0)
+            for (int i = 0; i < dishCount; i++)
+                //todo
+                if (menu[i].getDish().equals(dish)) { //Проверяем "объекты" на равенство, то есть названия блюда, которое уже добавлено в меню, и нового блюда
+                    System.out.println("Простите, но блюда с таким названием уже существует");
+                    return;
+                }
+        //Проверка цены блюда
+        if (price <= 0) {
+            System.out.println("Простите, цена не может быть меньше или равна 0 :(");
+            return;
+        }
+        //Проверка, возможно ли добавить новое блюдо в меню(есть ли место)
+        if (dishCount >= menu.length) {
+            System.out.println("Простите, но меню уже заполнено");
+            return;
+        }
+        //Если новое блюдо прошло все проверки, то мы его добавляем
+        menu[dishCount++] = new Dish(dish, price, count);
+        System.out.println("Ваше блюдо добавлено");
+    }
+
+    //Печать нашего меню(полностью)(2)
+    public void printMenu() {
+        //Проверка, есть ли у нас хотя бы одно добавленное блюдо в меню
+        if (dishCount == 0) {
+            System.out.println("Простите, но в меню еще не добавлены блюда");
+            return;
+        }
+        //Отсортировываем массив(меню), чтобы блюда были расположены в алфавитном порядке
+        sortMenu();
+        //Печать меню
+        System.out.println("Меню:");
+        for (int i = 0; i < dishCount; i++) {
+            int number = i + 1;
+            System.out.printf("%d. %s - %.2f руб.\n", number, menu[i].getDish(), menu[i].getPrice());
+        }
+    }
+
+    //Печать нашего меню(доступных блюд)(3)
+    public void printAvailableMenu() {
+        //Проверка, есть ли у нас хотя бы одно добавленное блюдо в меню
+        if (dishCount == 0) {
+            System.out.println("Простите, но в меню еще не добавлены блюда");
+            return;
+        }
+        //Отсортировываем массив(меню), чтобы блюда были расположены в алфавитном порядке
+        sortMenu();
+        //Печать меню с доступными блюдами
+        System.out.println("Меню доступных блюд:");
+        int number = 0;
+        for (int i = 0; i < dishCount; i++)
+            if (menu[i].getCount() > 0) {
+                number++;
+                System.out.printf("%d. %s - %.2f руб. (%d порций)\n", number, menu[i].getDish(), menu[i].getPrice(), menu[i].getCount());
+            }
+    }
+
+    //Отдельная подпрограмма для сортировки массива(меню) по названию блюд
+    public void sortMenu() {
+        //Проверка, есть ли у нас хотя бы одно добавленное блюдо в меню
+        if (dishCount == 0) {
+            System.out.println("Простите, но в меню еще не добавлены блюда");
+            return;
+        }
+        //Сортировка пузырьком
+        for (int i = 1; i < dishCount; i++)
+            for (int j = 0; j < dishCount - i; j++)
+                //Сравниваем названия блюд лексикографически
+                if (menu[j].getDish().compareTo(menu[j + 1].getDish()) > 0) {
+                    Dish temp = menu[j];
+                    menu[j] = menu[j + 1];
+                    menu[j + 1] = temp;
+                }
+    }
+
+    //Приготовление порций блюда(4)
+    public void prepareCount(int num, int cnt) {
+        //Требуемые в задании проверки
+        if (num < 1 || num > dishCount) {
+            System.out.println("Простите, но блюда под таким номером нет");
+            return;
+        }
+        if (cnt <= 0) {
+            System.out.println("Простите, но вы не добавили количество порций");
+            return;
+        }
+        //Изменение количества(приготовление)
+        menu[num - 1].setCount(menu[num - 1].getCount() + cnt);
+        System.out.printf("%s\n%d. %s (%d порций)\n", "Успешно", num, menu[num - 1].getDish(), menu[num - 1].getCount());
+    }
+
+    //Изменение цены блюда(5)
+    public void changePrice(int num, double price) {
+        //Требуемые в задании проверки
+        if (num < 1 || num > dishCount) {
+            System.out.println("Простите, но блюда под таким номером нет");
+            return;
+        }
+        if (price == menu[num - 1].getPrice() || menu[num - 1].getPrice() - price > 0) {
+            System.out.println("Простите, но цену можно только увеличить");
+            return;
+        }
+        //Изменение цены
+        menu[num - 1].setPrice((price));
+        System.out.printf("Цена блюда \"%s\" обновлена. Новая цена: %.2f руб.%n", menu[num - 1].getDish(), menu[num - 1].getPrice());
+    }
+
+    //Покупка одного блюда(6)
+    public double buyDish(int num) {
+        //Необходимые в задании проверки
+        if (num < 1 || num > dishCount) {
+            System.out.println("Простите, такого блюда не существует");
+            return -1;
+        }
+        if (menu[num - 1].getCount() <= 0) {
+            System.out.println("Простите, такого блюда нет в наличии");
+            return -1;
+        }
+        //изменяем количество блюд после покупки
+        menu[num - 1].setCount(menu[num - 1].getCount() - 1);
+        //возвращаем цену этого блюда
+        return menu[num - 1].getPrice();
+    }
+
+    //Покупка нескольких блюд(7)
+    public double buyMultDishes(int[] nums) {
+        double sum = 0; //общая сумма
+        boolean res = false; //флаг
+
+        for (int i = 0; i < nums.length; i++) {
+            int n = nums[i]; //берем первый номер из массива номеров
+            if (n < 1 || n > dishCount) {
+                System.out.println("Простите, но такого блюда не существует");
+                return -1;
+            }
+            //запускаем ранее созданный метод для покупки одного блюда
+            double cost = buyDish(n);
+            //Делаем проверку, возможно ли купить такое блюдо
+            if (cost != -1) {
+                //Если блюдо прошло проверку, то добавляем его стоимость и меняем флаг
+                sum += cost;
+                res = true;
+            }
+        }
+        if (res)
+            return sum;
+        else
+            return -1;
+    }
+
+    //Максимальное количество блюд по сумме(8)
+    public int maxDishes(double sum) {
+        int count = 0; //счётчик для доступных блюд
+        Dish[] availableDishes = new Dish[dishCount];
+        //Добавляем в локальный массив только доступные блюда
+        for (int i = 0; i < dishCount; i++)
+            if (menu[i].getCount() > 0) {
+                availableDishes[count] = menu[i];
+                count++;
+            }
+        //Сортируем массив по цене, чтобы сначала
+        // получить наиболее количество блюд при покупке
+        //Сортировка пузырьком
+        for (int i = 1; i < count; i++)
+            for (int j = 0; j < count - i; j++)
+                if (availableDishes[j].getPrice() > availableDishes[j + 1].getPrice()) {
+                    Dish temp = availableDishes[j];
+                    availableDishes[j] = availableDishes[j + 1];
+                    availableDishes[j + 1] = temp;
+                }
+        //переменная для подсчёта количества блюд,
+        // которые можно купить на передаваемую сумму
+        int dishes = 0;
+        for (int i = 0; i < count; i++) {
+            Dish dish = availableDishes[i]; //берем первое блюдо
+            int affordableDishes = (int) Math.min(sum / dish.getPrice(), dish.getCount());
+            dishes += affordableDishes;
+            sum -= affordableDishes * dish.getPrice();
+            if (sum <= 0)
+                break;
+        }
+        return dishes;
+    }
+
+    //Три самых дорогих блюд(9)
+    public void getThreeMostExpDishes() {
+        Dish first = null; //Переменная для самого дорого блюда
+        Dish second = null; //Переменная для второго по стоимости блюда
+        Dish third = null; //Переменная для третьего по стоимости блюдо
+        for (int i = 0; i < dishCount; i++) {
+            if (menu[i] == null || menu[i].getCount() <= 0) {
+                continue;
+            }
+            if (first == null || menu[i].getPrice() > first.getPrice()) {
+                third = second;
+                second = first;
+                first = menu[i];
+            } else if (second == null || menu[i].getPrice() > second.getPrice()) {
+                third = second;
+                second = menu[i];
+            } else if (third == null || menu[i].getPrice() > third.getPrice()) {
+                third = menu[i];
+            }
+        }
+        //Вывод
+        if (first != null)
+            System.out.println("1. " + first.getDish() + " - " + first.getPrice());
+        else
+            System.out.println("Извините, но доступных блюд нет");
+        if (second != null)
+            System.out.println("2. " + second.getDish() + " - " + second.getPrice());
+        if (third != null)
+            System.out.println("3. " + third.getDish() + " - " + third.getPrice());
+    }
+
+    //Три самых дешёвых блюд(10)
+    public void getThreeCheapestDishes() {
+        Dish first = null; //Переменная для самого дешёвого блюда
+        Dish second = null; //Переменная для второго по стоимости блюда
+        Dish third = null; //Переменная для третьего по стоимости блюдо
+        for (int i = 0; i < dishCount; i++) {
+            if (menu[i] == null || menu[i].getCount() <= 0) {
+                continue;
+            }
+            if (first == null || menu[i].getPrice() < first.getPrice()) {
+                third = second;
+                second = first;
+                first = menu[i];
+            } else if (second == null || menu[i].getPrice() < second.getPrice()) {
+                third = second;
+                second = menu[i];
+            } else if (third == null || menu[i].getPrice() < third.getPrice()) {
+                third = menu[i];
+            }
+        }
+        //Вывод
+        if (first != null)
+            System.out.println("1. " + first.getDish() + " - " + first.getPrice());
+        else
+            System.out.println("Извините, но доступных блюд нет");
+        if (second != null)
+            System.out.println("2. " + second.getDish() + " - " + second.getPrice());
+        if (third != null)
+            System.out.println("3. " + third.getDish() + " - " + third.getPrice());
+    }
+
+    //Удаление блюда из списка(11)
+    public void removeDish(String name) {
+        for (int i = 0; i < dishCount; i++) {
+            if (menu[i].getDish().equals(name)) {
+                //Смещаем элементы массива влево, чтобы заполнить пробел
+                for (int j = i; j < dishCount - 1; j++)
+                    menu[j] = menu[j + 1];
+                //Уменьшаем количество блюд и очищаем последний элемент
+                menu[--dishCount] = null;
+                System.out.println("Блюдо удалено");
+                return;
+            }
+        }
+        //Если такое блюдо не найдется
+        System.out.println("Такого блюда не найдено");
+    }
+
+    //Удаление блюда, если его нет в наличии(12)
+    public void removeDishIfOutStock(String name) {
+        for (int i = 0; i < dishCount; i++) {
+            if (menu[i].getDish().equals(name)) {
+                if (menu[i].getCount() <= 0) {
+                    for (int j = i; j < dishCount - 1; j++)
+                        menu[j] = menu[j + 1];
+                    menu[--dishCount] = null;
+                    System.out.println("Блюдо удалено");
+                    return;
+                }
+                else {
+                    System.out.println("Блюдо еще есть в наличии");
+                }
+            }
+        }
+        //Если такое блюдо не найдется
+        System.out.println("Такого блюда не найдено или он еще есть в наличии");
+    }
+}
+```
+
+### 3.3. Класс для создания блюда
+```java
+public class Dish {
+    private String dish;
+    private double price;
+    private int count;
+
+    //Создание необходимых переменных названия блюд,
+    //их стоимость и количество порций.
+    public Dish(String dish, double price, int count) {
+        this.dish = dish; //блюдо
+        this.price = price; //цена
+        this.count = count; //количество порций
+    }
+
+    //Геттеры и сеттеры для этих переменных
+    public String getDish() {
+        return dish;
+    }
+
+    public void setDish(String dish) {
+        this.dish = dish;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        if (price > 0) //проверка цены, потому что если она меньше нуля, то мы игнорируем
+            this.price = price;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s - %.2f руб. (%d порций)", dish, price, count);
+    }
+}
+
 ```
 
 ### 6. Анализ правильности решения
 
 Программа работает корректно.
 
-1. Тест на `N = 3`, `M = 2`, и логические выражения:
+1. Тест: добавление блюда:
 
     - **Input**:
         ```
-        3 2
-        x < 6
-        x > 3
-        x = 4
-        x > 6
-        x < 7
-        x = 5
-        5
+         1
+         Кура
+         123
+         1
+
         ```
 
     - **Output**:
         ```
-        true true
-        false false
-        true true
-        Истина Истина
-        Истина Истина
-        Ложь Ложь
-        5
+        Ваше блюдо добавлено
         ```
 
-2. Тест на `N = 2`, `M = 3`, и логические выражения:
+2. Тест: печать меню полностью:
 
     - **Input**:
         ```
-        2 3
-        x > 5
-        x < 3
-        x = 5
-        x > 1
-        x < 10
-        x = 5
-        5
+        2
         ```
 
     - **Output**:
         ```
-        false false true
-        true true true
-        Истина Истина Истина
-        Ложь Ложь Истина
-        4 
+        Меню:
+        1. Кура - 123,00 руб.
+        2. Пельмени - 500,00 руб.
+        3. Пицца - 234,00 руб.
+        4. Халва - 12,00 руб.
+
         ```
 
-3. Тест на `N = 3`, `M = 2`, и логические выражения:
+3. Тест: печать меню доступных блюд
 
     - **Input**:
         ```
-        2 2
-        x > 2
-        x < 4
-        x > 3
-        x = 2
         3
         ```
 
     - **Output**:
         ```
-        true true
-        false false
-        Истина Истина
-        Ложь Ложь
+        Меню доступных блюд:
+        Кура - 123,00 руб. (1 порций)
+        Пельмени - 500,00 руб. (6 порций)
+        Пицца - 234,00 руб. (2 порций)
+        Халва - 12,00 руб. (3 порций)
+
+        ```
+
+4. Тест: добавление порций
+
+    - **Input**:
+        ```
+        4
         3
-        ```
-
-4. Тест на `N = 3`, `M = 1`, и логические выражения:
-
-    - **Input**:
-        ```
-        3 1
-        x < 7
-        x = 4
-        x > 6
-        5
+        2
+    
         ```
 
     - **Output**:
         ```
-        true
-        false
-        false
-        Истина
-        Ложь
-        Ложь
-        3 
+        Выберите действие: 4
+        Меню доступных блюд:
+        1. Кура - 250,00 руб. (4 порций)
+        2. Пицца - 180,00 руб. (5 порций)
+        3. Цезарь - 200,00 руб. (3 порций)
+        Введите номер блюда в меню: 3
+        Введите количество порций: 2
+        Успешно
+        3. Цезарь (5 порций)
+      
         ```
 
-5. Тест на `N = 4`, `M = 3`, и логические выражения:
+5. Тест: изменение цены
 
     - **Input**:
         ```
-        4 3
-        x > 2
-        x < 5
-        x = 3
-        x > 4
-        x < 6
-        x = 7
-        x > 6
-        x = 4
-        x < 10
-        x < 3
-        x = 5
-        x > 1
         5
+        2
+        256,5
         ```
 
     - **Output**:
         ```
-        true false false
-        true true false
-        false false true
-        false true true
-        Истина Истина Ложь
-        Ложь Истина Истина
-        Истина Ложь Ложь
-        Ложь Ложь Истина
-        8 
+        Выберите действие: 5
+        Меню:
+        1. Кура - 250,00 руб.
+        2. Пицца - 180,00 руб.
+        3. Цезарь - 200,00 руб.
+        Введите номер блюда в меню: 2
+        Введите новую цену: 256,5
+        Цена блюда "Пицца" обновлена. Новая цена: 256,50 руб.
         ```
+6. Тест: купить одно блюдо
+
+   - **Input**:
+       ```
+       6
+       3
+       ```
+
+   - **Output**:
+       ```
+       Меню доступных блюд:
+       1. Кура - 250,00 руб. (4 порций)
+       2. Пицца - 256,50 руб. (5 порций)
+       3. Цезарь - 200,00 руб. (5 порций)
+       Введите номер блюда в меню: 3
+       Цена: 200.0
+       ```
+7. Тест: купить несколько блюд
+
+   - **Input**:
+       ```
+       7
+       3
+       1 2 3
+       ```
+
+   - **Output**:
+       ```
+       Выберите действие: 7
+       Меню доступных блюд:
+       1. Кура - 250,00 руб. (4 порций)
+       2. Пицца - 256,50 руб. (5 порций)
+       3. Цезарь - 200,00 руб. (4 порций)
+       Сколько блюд вы хотите купить? 3
+       Введите номера блюд:
+       1 2 3
+       Общая стоимость: 706.5
+       ```
+8. Тест: Максимальное количество блюд за сумму
+
+   - **Input**:
+       ```
+       8
+       1111,25
+       ```
+
+   - **Output**:
+       ```
+       Выберите действие: 8
+       Меню доступных блюд:
+       1. Кура - 250,00 руб. (3 порций)
+       2. Пицца - 256,50 руб. (4 порций)
+       3. Цезарь - 200,00 руб. (3 порций)
+       В пределах какой суммы вы хотите совершить покупку? 1111,25
+       Максимальное количество блюд, которые вы можете купить: 5
+       ```     
+9. Тест: Три самых дорогих блюда
+
+   - **Input**:
+       ```
+       9
+       ```
+
+   - **Output**:
+       ```
+       1. Манты - 500.0
+       2. Пельмени - 430.0
+       3. Пицца - 256.5
+       ```     
+10. Тест: Три самых дешёвых блюда
+
+   - **Input**:
+       ```
+       10
+       ```
+
+   - **Output**:
+       ```
+       1. Цезарь - 200.0
+       2. Кура - 250.0
+       3. Пицца - 256.5
+
+       ```          
+11. Тест: Удалить блюдо полностью
+
+    - **Input**:
+        ```
+        11
+        Цезарь
+        ```
+
+    - **Output**:
+        ```
+        Выберите действие: 11
+        Меню:
+        1. Кура - 250,00 руб.
+        2. Манты - 500,00 руб.
+        3. Пельмени - 430,00 руб.
+        4. Пицца - 256,50 руб.
+        5. Цезарь - 200,00 руб.
+        Введите название блюда: Цезарь
+        Блюдо удалено
+
+        ```    
+12. Тест: Удалить блюдо, потому что его нет в наличии
+
+   - **Input**:
+       ```
+       12
+       Паста
+       ```
+
+   - **Output**:
+       ```
+       Выберите действие: 12
+       Меню:
+       1. Долма - 300,00 руб.
+       2. Паста - 450,00 руб.
+       3. Пицца - 230,00 руб.
+       4. Цезарь - 200,00 руб.
+       Введите название блюда: Паста
+       Блюдо удалено
+
+       ```      

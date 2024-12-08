@@ -9,11 +9,6 @@ public class Menu {
 
     //Добавление блюда(1)
     public void addDish(String dish, double price, int count) {
-        /* Проверка количества добавляемых блюд
-        if (count <= 0) {
-            System.out.println("Простите, но количество должно быть больше 0 :(");
-            return;
-        } */
         //Проверка, существует ли блюдо с таким названием
         if (dishCount > 0)
             for (int i = 0; i < dishCount; i++)
@@ -48,9 +43,10 @@ public class Menu {
         sortMenu();
         //Печать меню
         System.out.println("Меню:");
-        for (int i = 0; i < dishCount; i++)
-            System.out.printf("%s - %.2f руб.%n", menu[i].getDish(), menu[i].getPrice());
-
+        for (int i = 0; i < dishCount; i++) {
+            int number = i + 1;
+            System.out.printf("%d. %s - %.2f руб.\n", number, menu[i].getDish(), menu[i].getPrice());
+        }
     }
 
     //Печать нашего меню(доступных блюд)(3)
@@ -64,10 +60,12 @@ public class Menu {
         sortMenu();
         //Печать меню с доступными блюдами
         System.out.println("Меню доступных блюд:");
-        for (int i = 0; i < dishCount - 1; i++)
-            if (menu[i].getCount() > 0)
-                System.out.printf("%s - %.2f руб.%n", menu[i].getDish(), menu[i].getPrice());
-
+        int number = 0;
+        for (int i = 0; i < dishCount; i++)
+            if (menu[i].getCount() > 0) {
+                number++;
+                System.out.printf("%d. %s - %.2f руб. (%d порций)\n", number, menu[i].getDish(), menu[i].getPrice(), menu[i].getCount());
+            }
     }
 
     //Отдельная подпрограмма для сортировки массива(меню) по названию блюд
@@ -101,7 +99,7 @@ public class Menu {
         }
         //Изменение количества(приготовление)
         menu[num - 1].setCount(menu[num - 1].getCount() + cnt);
-        //System.out.printf("Количество порций блюда \"%s\" увеличено на %d. Текущее количество: %d%n", menu[dishNumber - 1].getName(), additionalPortions, menu[dishNumber - 1].getPortions());
+        System.out.printf("%s\n%d. %s (%d порций)\n", "Успешно", num, menu[num - 1].getDish(), menu[num - 1].getCount());
     }
 
     //Изменение цены блюда(5)
@@ -111,13 +109,13 @@ public class Menu {
             System.out.println("Простите, но блюда под таким номером нет");
             return;
         }
-        if (price == menu[num].getPrice() || menu[num].getPrice() - price > 0) {
+        if (price == menu[num - 1].getPrice() || menu[num - 1].getPrice() - price > 0) {
             System.out.println("Простите, но цену можно только увеличить");
             return;
         }
         //Изменение цены
         menu[num - 1].setPrice((price));
-        //System.out.printf("Цена блюда \"%s\" обновлена. Новая цена: %.2f руб.%n", menu[dishNumber - 1].getName(), newPrice);
+        System.out.printf("Цена блюда \"%s\" обновлена. Новая цена: %.2f руб.%n", menu[num - 1].getDish(), menu[num - 1].getPrice());
     }
 
     //Покупка одного блюда(6)
@@ -127,18 +125,14 @@ public class Menu {
             System.out.println("Простите, такого блюда не существует");
             return -1;
         }
-        //присваиваем ссылку новой локальной переменной
-        // на уже существующий объект блюда из массива menu
-        //для удобной работы :)
-        Dish dish = menu[num - 1];
-        if (dish.getCount() <= 0) {
+        if (menu[num - 1].getCount() <= 0) {
             System.out.println("Простите, такого блюда нет в наличии");
             return -1;
         }
         //изменяем количество блюд после покупки
-        dish.setCount(dish.getCount() - 1);
+        menu[num - 1].setCount(menu[num - 1].getCount() - 1);
         //возвращаем цену этого блюда
-        return dish.getPrice();
+        return menu[num - 1].getPrice();
     }
 
     //Покупка нескольких блюд(7)
@@ -207,19 +201,18 @@ public class Menu {
         Dish second = null; //Переменная для второго по стоимости блюда
         Dish third = null; //Переменная для третьего по стоимости блюдо
         for (int i = 0; i < dishCount; i++) {
-            Dish dish = menu[i]; // Берем одно добавленное блюдо
-            if (dish == null || dish.getCount() <= 0) {
+            if (menu[i] == null || menu[i].getCount() <= 0) {
                 continue;
             }
-            if (first == null || dish.getPrice() > first.getPrice()) {
+            if (first == null || menu[i].getPrice() > first.getPrice()) {
                 third = second;
                 second = first;
-                first = dish;
-            } else if (second == null || dish.getPrice() > second.getPrice()) {
+                first = menu[i];
+            } else if (second == null || menu[i].getPrice() > second.getPrice()) {
                 third = second;
-                second = dish;
-            } else if (third == null || dish.getPrice() > third.getPrice()) {
-                third = dish;
+                second = menu[i];
+            } else if (third == null || menu[i].getPrice() > third.getPrice()) {
+                third = menu[i];
             }
         }
         //Вывод
@@ -239,19 +232,18 @@ public class Menu {
         Dish second = null; //Переменная для второго по стоимости блюда
         Dish third = null; //Переменная для третьего по стоимости блюдо
         for (int i = 0; i < dishCount; i++) {
-            Dish dish = menu[i]; // Берем одно добавленное блюдо
-            if (dish == null || dish.getCount() <= 0) {
+            if (menu[i] == null || menu[i].getCount() <= 0) {
                 continue;
             }
-            if (first == null || dish.getPrice() < first.getPrice()) {
+            if (first == null || menu[i].getPrice() < first.getPrice()) {
                 third = second;
                 second = first;
-                first = dish;
-            } else if (second == null || dish.getPrice() < second.getPrice()) {
+                first = menu[i];
+            } else if (second == null || menu[i].getPrice() < second.getPrice()) {
                 third = second;
-                second = dish;
-            } else if (third == null || dish.getPrice() < third.getPrice()) {
-                third = dish;
+                second = menu[i];
+            } else if (third == null || menu[i].getPrice() < third.getPrice()) {
+                third = menu[i];
             }
         }
         //Вывод
@@ -285,14 +277,18 @@ public class Menu {
     //Удаление блюда, если его нет в наличии(12)
     public void removeDishIfOutStock(String name) {
         for (int i = 0; i < dishCount; i++) {
-            if (menu[i].getDish().equals(name))
+            if (menu[i].getDish().equals(name)) {
                 if (menu[i].getCount() <= 0) {
                     for (int j = i; j < dishCount - 1; j++)
                         menu[j] = menu[j + 1];
                     menu[--dishCount] = null;
                     System.out.println("Блюдо удалено");
+                    return;
                 }
-            return;
+                else {
+                    System.out.println("Блюдо еще есть в наличии");
+                }
+            }
         }
         //Если такое блюдо не найдется
         System.out.println("Такого блюда не найдено или он еще есть в наличии");

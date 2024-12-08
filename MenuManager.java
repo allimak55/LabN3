@@ -30,7 +30,7 @@ public class MenuManager {
                 9. Три самых дорогих блюда
                 10. Три самых дешёвых блюда
                 11. Удалить блюдо полностью
-                12. Удалить блюдо, потому что оно нет в наличии
+                12. Удалить блюдо, потому что его нет в наличии
                 13. Выход
                 """);
         out.print("Выберите действие: ");
@@ -41,14 +41,32 @@ public class MenuManager {
             case 1 -> addDish(menu);
             case 2 -> menu.printMenu();
             case 3 -> menu.printAvailableMenu();
-            case 4 -> addPreparedDish(menu);
-            case 5 -> changeDishPrice(menu);
-            case 6, 7 -> buyDish(menu, choice == 6);
-            case 8 -> getMaxDishesWithinBudget(menu);
+            case 4 -> {
+                menu.printAvailableMenu();
+                addPreparedDish(menu);
+            }
+            case 5 -> {
+                menu.printMenu();
+                changeDishPrice(menu);
+            }
+            case 6, 7 -> {
+                menu.printAvailableMenu();
+                buyDish(menu, choice == 6);
+            }
+            case 8 -> {
+                menu.printAvailableMenu();
+                getMaxDishesWithinBudget(menu);
+            }
             case 9 -> menu.getThreeMostExpDishes();
             case 10 -> menu.getThreeCheapestDishes();
-            case 11 -> removeDish(menu);
-            case 12 -> removeDishOutOfStock(menu);
+            case 11 -> {
+                menu.printMenu();
+                removeDish(menu);
+            }
+            case 12 -> {
+                menu.printMenu();
+                removeDishOutOfStock(menu);
+            }
             case 13 -> {
                 out.println("Выход...");
                 return true;
